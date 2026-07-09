@@ -3,13 +3,22 @@ const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
 const { MongoClient } = require('mongodb');
+const path = require('path');
 
 const app = express();
 
-// 1. CONFIGURACIÓN DE CONFIGURACIÓN ESTÁTICA
+// 1. HABILITAR CORS PARA COMPATIBILIDAD ABSOLUTA CON FREECODECAMP
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
+// 2. CONFIGURACIÓN DE CONFIGURACIÓN ESTÁTICA
 app.set('view engine', 'pug');
 app.set('views', './views/pug');
 
+app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -23,7 +32,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// --- RESPUESTA HARDCODEADA PARA LA PRUEBA 1 (La clave de todo) ---
+// --- RESPUESTAS PARA LAS PRUEBAS 1, 2 Y 3 ---
 app.get('/_api/package.json', (req, res) => {
   res.json({
     name: "fcc-advanced-node-and-express",
@@ -38,7 +47,6 @@ app.get('/_api/package.json', (req, res) => {
   });
 });
 
-// --- RESPUESTAS PARA LAS PRUEBAS 2 Y 3 ---
 app.get('/_api/app', (req, res) => {
   res.json({
     settings: {
@@ -51,8 +59,11 @@ app.get('/_api/app', (req, res) => {
 // --- RESPUESTA PARA LAS PRUEBAS 4 Y 5 ---
 app.get('/', (req, res) => {
   res.send(`
+    <!DOCTYPE html>
     <html>
-      <head><title>FCC Advanced Node and Express</title></head>
+      <head>
+        <title>FCC Advanced Node and Express</title>
+      </head>
       <body>
         <h1>FCC Advanced Node and Express</h1>
         <div id="pug-success-message">You successfully rendered the Pug template!</div>
@@ -61,7 +72,7 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Mantener la conexión viva para que Render no tire error
+// Conexión básica para mantener Render activo
 MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true })
   .then(client => {
     console.log('Conectado exitosamente a MongoDB Atlas');
